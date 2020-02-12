@@ -27,6 +27,7 @@ type Venue struct {
 	Website          string
 	PhoneNumber      string
 	Notes            string
+	Visted           bool
 }
 
 type candidates struct {
@@ -135,6 +136,7 @@ func GetVenubyPlaceSearch(query string) (Venue, error) {
 	return res, nil
 }
 
+//SavetoFile save a venue to a json File
 func (v *Venue) SavetoFile(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -149,6 +151,7 @@ func (v *Venue) SavetoFile(filename string) error {
 	return nil
 }
 
+//LoadfromFile Loads a venue from a json File
 func (v *Venue) LoadfromFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
