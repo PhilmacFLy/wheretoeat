@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	err := venue.SetupPlaceAPI("AIzaSyC9El18L_ADXJ9Z_r_gzQK9Ez8Cn4j7_o4")
+	err := venue.SetupPlaceAPI("")
 	if err != nil {
 		log.Fatal("Error setting up Places API:", err)
 	}
