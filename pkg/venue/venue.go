@@ -6,8 +6,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -163,4 +165,29 @@ func (v *Venue) LoadfromFile(filename string) error {
 		return errors.New("Error decoding file: " + err.Error())
 	}
 	return nil
+}
+
+//ListVenues gives back a slice with all venues in a folder
+func (v *Venue) ListVenues(datafolder string) ([]Venue, error) {
+	var result []Venue
+	files, err := ioutil.ReadDir(datafolder)
+	if err != nil {
+		return result, errors.New("Error reading folder: " + err.Error())
+	}
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		extension := filepath.Ext(f.Name())
+		if strings.Compare(extension, ".json") != 0 {
+			continue
+		}
+		var v Venue
+		err := v.LoadfromFile(filepath.Join(datafolder, f.Name()))
+		if err != nil {
+			return result, errors.New("Error loading one venue: " + err.Error())
+		}
+		result = append(result, v)
+	}
+	return result, nil
 }
