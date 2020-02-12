@@ -20,14 +20,13 @@ type Venue struct {
 	Name             string
 	Address          string
 	Rating           int
-	LastVisited      time.Time
 	GooglePlaceID    string
 	OpeningHours     maps.OpeningHours
 	OpeningHoursText []string
 	Website          string
 	PhoneNumber      string
 	Notes            string
-	Visted           bool
+	Visted           []time.Time
 }
 
 type candidates struct {
