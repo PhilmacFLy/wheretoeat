@@ -19,6 +19,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error setting up Places API:", err)
 	}
-	r := web.SetupRouters("/", "data")
+	venue.SetDataFolder("data")
+	r := web.SetupRouters("/")
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(c.Port), r))
 }

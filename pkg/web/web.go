@@ -3,20 +3,27 @@ package web
 import (
 	"fmt"
 	"net/http"
-	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
-var datafolder string
+type errorResponse struct {
+	Httpstatus   string `json:"httpstatus"`
+	Errormessage string `json:"errormessage"`
+}
+
+type addVisitsRequest struct {
+	Visits []time.Time `json:"visits"`
+}
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/ui/", http.StatusSeeOther)
 }
 
 //SetupRouters gives back the router for the api aswell as the frontend
-func SetupRouters(prefix string, venuedatafolder string) *mux.Router {
-	datafolder = venuedatafolder + string(os.PathSeparator)
+func SetupRouters(prefix string) *mux.Router {
+
 	r := mux.NewRouter().PathPrefix(prefix).Subrouter()
 	ui := getUIRouter("/ui")
 	r.PathPrefix("/ui").Handler(ui)

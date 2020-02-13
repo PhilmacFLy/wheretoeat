@@ -28,7 +28,7 @@ type Venue struct {
 	Website          string
 	PhoneNumber      string
 	Notes            string
-	Visted           []time.Time
+	Visits           []time.Time
 }
 
 type candidates struct {
@@ -51,6 +51,8 @@ const detailqueryfields = "opening_hours,website,international_phone_number"
 var client *maps.Client
 var searchqueryfieldsmask []maps.PlaceSearchFieldMask
 var detailqueryfieldsmask []maps.PlaceDetailsFieldMask
+
+var datafolder string
 
 func parseSearchFields(fields string) ([]maps.PlaceSearchFieldMask, error) {
 	var res []maps.PlaceSearchFieldMask
@@ -94,6 +96,18 @@ func SetupPlaceAPI(apikey string) error {
 	return nil
 }
 
+//SetDataFolder sets the folder where the json Files reside
+func SetDataFolder(venuedatafolder string) {
+	datafolder = venuedatafolder + string(os.PathSeparator)
+}
+
+//GenerateVenueID takes the Name and the Adress and builds the id from it
+func (v *Venue) GenerateVenueID() string {
+	hasher := sha1.New()
+	hasher.Write([]byte(v.Name + v.Address))
+	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+}
+
 //GetVenubyPlaceSearch takes the query and queries the googleplaces api with it
 func GetVenubyPlaceSearch(query string) (Venue, error) {
 	var res Venue
@@ -129,16 +143,27 @@ func GetVenubyPlaceSearch(query string) (Venue, error) {
 	res.Website = detailResp.Website
 	res.PhoneNumber = detailResp.InternationalPhoneNumber
 	res.OpeningHoursText = detailResp.OpeningHours.WeekdayText
-
-	hasher := sha1.New()
-	hasher.Write([]byte(res.Name + res.Address))
-	res.VenueID = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	res.VenueID = res.GenerateVenueID()
 
 	return res, nil
 }
 
+func (v *Venue) getJSONFile() string {
+	return filepath.Join(datafolder, v.VenueID) + ".json"
+}
+
+//LoadFromDataLocation loads the JSON File of the Venue from the Data Location
+func (v *Venue) LoadFromDataLocation() error {
+	return v.loadfromFile(v.getJSONFile())
+}
+
+//SavetoDataLocation saves the JSON File of the Venue to the Data Location
+func (v *Venue) SavetoDataLocation() error {
+	return v.savetoFile(v.getJSONFile())
+}
+
 //SavetoFile save a venue to a json File
-func (v *Venue) SavetoFile(filename string) error {
+func (v *Venue) savetoFile(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return errors.New("Error creating file: " + err.Error())
@@ -153,7 +178,7 @@ func (v *Venue) SavetoFile(filename string) error {
 }
 
 //LoadfromFile Loads a venue from a json File
-func (v *Venue) LoadfromFile(filename string) error {
+func (v *Venue) loadfromFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return errors.New("Error opening file: " + err.Error())
@@ -167,8 +192,17 @@ func (v *Venue) LoadfromFile(filename string) error {
 	return nil
 }
 
+//Delete Removes the Venue file from the Drive
+func (v *Venue) Delete() error {
+	err := os.Remove(v.getJSONFile())
+	if err != nil {
+		return errors.New("Error deleting file: " + err.Error())
+	}
+	return nil
+}
+
 //ListVenues gives back a slice with all venues in a folder
-func (v *Venue) ListVenues(datafolder string) ([]Venue, error) {
+func ListVenues() ([]Venue, error) {
 	var result []Venue
 	files, err := ioutil.ReadDir(datafolder)
 	if err != nil {
@@ -183,7 +217,7 @@ func (v *Venue) ListVenues(datafolder string) ([]Venue, error) {
 			continue
 		}
 		var v Venue
-		err := v.LoadfromFile(filepath.Join(datafolder, f.Name()))
+		err := v.loadfromFile(filepath.Join(datafolder, f.Name()))
 		if err != nil {
 			return result, errors.New("Error loading one venue: " + err.Error())
 		}
