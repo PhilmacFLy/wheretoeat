@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/philmacfly/wheretoeat/pkg/venue"
+
 	"github.com/gorilla/mux"
 )
 
@@ -140,9 +142,30 @@ func venueUIListHandler(w http.ResponseWriter, r *http.Request) {
 	showtemplate(w, tp, mp)
 }
 
+func venueUIViewHandler(w http.ResponseWriter, r *http.Request) {
+	var vvp venueViewPage
+	tp := "../../web/templates/venue/view.html"
+	vvp.Default.Navbar = buildNavbar(overviewActive)
+	vvp.Default.Pagename = "Venue View"
+
+	id := r.FormValue("id")
+
+	v := venue.Venue{VenueID: id}
+	err := v.LoadFromDataLocation()
+	if err != nil {
+		vvp.Default.Message = buildMessage(errormessage, "Error loading venue: "+err.Error())
+		showtemplate(w, tp, vvp)
+		return
+	}
+	vvp.Venue = convertVenuetoWebVenue(v)
+	showtemplate(w, tp, vvp)
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
+	case "view":
+		venueUIViewHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}
