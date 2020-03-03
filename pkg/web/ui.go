@@ -24,6 +24,12 @@ const errormessage = `<div class="alert alert-danger" role="alert">
   $MESSAGE$
 </div>`
 
+const successmessage = `<div class="alert alert alert-success" role="alert">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only">Success:</span>
+  $MESSAGE$
+</div>`
+
 var navitems [][]template.HTML
 
 func createNavitem(name string, link string) []template.HTML {
@@ -235,7 +241,10 @@ func venueUISaveHandler(w http.ResponseWriter, r *http.Request) {
 		showtemplate(w, tp, vap)
 		return
 	}
-	http.Redirect(w, r, "?action=view&id="+v.VenueID, http.StatusFound)
+	vap.Default.Message = buildMessage(successmessage, "New Venue successfully added")
+	vap.Venue = webVenue{}
+	showtemplate(w, tp, vap)
+	return
 }
 
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
