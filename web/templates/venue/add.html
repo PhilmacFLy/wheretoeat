@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" class="h-100">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.6">
+    <title>Wheretoeat · {{.Default.Pagename}}</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.4/examples/sticky-footer-navbar/">
+
+    <!-- Bootstrap core CSS -->
+<link href="../static/bootstrap-4.4.1-dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="../static/open-iconic/font/css/open-iconic-bootstrap.css" rel="stylesheet">
+<meta name="theme-color" content="#563d7c">
+
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="sticky-footer-navbar.css" rel="stylesheet">
+  </head>
+  <body class="d-flex flex-column h-100">
+    <header>
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand">Wheretoeat</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    {{.Default.Navbar}}
+  </nav>
+</header>
+
+<!-- Begin page content -->
+<main role="main" class="flex-shrink-0">
+    <div class="container">
+        <h2 class="mt-5">{{.Default.Pagename}}</h2>
+        {{.Default.Message}}
+        <form method="GET">
+            <fieldset>
+                <div class="md-3">
+                    <label class="control-label" for="Name">Name</label>
+                    <input type="text" class="form-control input-md"  id="textinput" name="Name" placeholder="" value="{{.Venue.Name}}" required="">
+                </div>
+                <div class="md-3">
+                    <label for="Address">Address</label>
+                    <input type="text" class="form-control input-md" id="textinput" name="Address" placeholder="" value="{{.Venue.Address}}">
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="Rating">Rating</label>
+                        <input type="text" class="form-control" id="textinput" name="Rating" placeholder="" value="{{.Venue.Rating}}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="placesid">Google Places ID</label>
+                        <input type="text" class="form-control" id="textinput" name="placesid" placeholder="" value="{{.Venue.GooglePlaceID}}">
+                    </div>
+                    </div>
+                    <div class="row">          
+                    <div class="col-md-6 mb-3">
+                        <label for="Website">Website</label>
+                        <input type="text" class="form-control" id="textinput" name="Website" placeholder="" value="{{.Venue.Website}}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phone">Phone Number</label>
+                        <input type="text" class="form-control" id="textinput" name="phone" placeholder="" value="{{.Venue.PhoneNumber}}">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="Notes">Notes</label>
+                    <textarea class="form-control" id="textinput" name="Notes" placeholder="" value="{{.Venue.Notes}}" rows=3></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label>Opening Hours</label>
+                    </div>
+                    <div class="col-md-4 mb-3">            
+                        <label for="Monday">Monday</label>
+                        <input type="text" class="form-control" id="textinput" name="Monday" placeholder="" value="{{.Venue.OpeningHours.Monday}}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Tuesday">Tuesday</label>
+                        <input type="text" class="form-control" id="textinput" name="Tuesday" placeholder="" value="{{.Venue.OpeningHours.Tuesday}}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Wednesday">Wednesday</label>
+                        <input type="text" class="form-control" id="textinput" name="Wednesday" placeholder="" value="{{.Venue.OpeningHours.Wednesday}}">
+                    </div>
+                    <div class="col-md-4 mb-3">            
+                        <label for="Thursday">Thursday</label>
+                        <input type="text" class="form-control" id="textinput" name="Thursday" placeholder="" value="{{.Venue.OpeningHours.Thursday}}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Friday">Friday</label>
+                        <input type="text" class="form-control" id="textinput" name="Friday" placeholder="" value="{{.Venue.OpeningHours.Friday}}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Saturday">Saturday</label>
+                        <input type="text" class="form-control" id="textinput" name="Saturday" placeholder="" value="{{.Venue.OpeningHours.Saturday}}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Sunday">Sunday</label>
+                        <input type="text" class="form-control" id="textinput" name="Sunday" placeholder="" value="{{.Venue.OpeningHours.Sunday}}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button id="savebutton" type="submit" formmethod="post" name="action" value="save" class="btn btn-primary">Save</button>
+                    <button id="savebutton" type="submit" name="action" value="add" class="btn btn-primary">Search in Google Places</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+</main>
+
+<script src="../static/jquery-3.4.1/jquery-3.4.1.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+      <script>window.jQuery || document.write('<script src="/docs/4.4/assets/js/vendor/jquery.slim.min.js"><\/script>')</script><script src="/docs/4.4/dist/js/bootstrap.bundle.min.js" integrity="sha384-6khuMg9gaYr5AxOqhkVIODVIvm9ynTT5J4V1cfthmT+emCG6yVmEZsRHdxlotUnm" crossorigin="anonymous"></script></body>
+</html>

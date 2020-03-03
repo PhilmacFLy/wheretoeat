@@ -161,11 +161,30 @@ func addVisitAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+func getVenueFromPlacesAPIHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	q := vars["query"]
+	v, err := venue.GetVenubyPlaceSearch(q)
+	if err != nil {
+		apierror(w, r, "Error searching places api: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	j, err := json.Marshal(&v)
+	if err != nil {
+		apierror(w, r, "Error marshalling Venue: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(j)
+}
+
 func getAPIRouter(prefix string) *mux.Router {
 	r := mux.NewRouter().PathPrefix(prefix).Subrouter()
 	r.HandleFunc("/", mainAPIHandler)
 	r.HandleFunc("/venue", postVenueAPIHandler).Methods("POST")
 	r.HandleFunc("/venue/list", listVenuesAPIHandler).Methods("GET")
+	r.HandleFunc("/venue/getfromplaces/{query}", getVenueFromPlacesAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", getVenueAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", patchVenueAPIHander).Methods("PATCH")
 	r.HandleFunc("/venue/{ID}", deleteVenueAPIHandler).Methods("DELETE")

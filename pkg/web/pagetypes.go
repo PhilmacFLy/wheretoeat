@@ -1,10 +1,13 @@
 package web
 
 import (
+	"errors"
 	"html/template"
+	"strings"
 	"time"
 
 	"github.com/philmacfly/wheretoeat/pkg/venue"
+	"googlemaps.github.io/maps"
 )
 
 type defaultPage struct {
@@ -68,7 +71,88 @@ func convertVenuetoWebVenue(v venue.Venue) webVenue {
 	return result
 }
 
+func convertOpeningHours(day time.Weekday, hours string) (maps.OpeningHoursPeriod, error) {
+	var result maps.OpeningHoursPeriod
+
+	input := strings.Replace(hours, " ", "", -1)
+	input = strings.Replace(input, ":", "", -1)
+	if hours == "" {
+		return result, nil
+	}
+	periods := strings.Split(input, ";")
+	if len(periods) < 1 {
+		return result, errors.New("No valid periods found. Watch the formatting")
+	}
+	for _, p := range periods {
+		if p == "" {
+			break
+		}
+		ocs := strings.Split(p, "-")
+		if len(ocs) != 2 {
+			return result, errors.New("No valid opening/closing found. Watch the formatting")
+		}
+		result.Open.Day = day
+		result.Open.Time = ocs[0]
+		result.Close.Day = day
+		result.Close.Time = ocs[1]
+	}
+	return result, nil
+}
+
+func convertWebVenuetoVenue(wv webVenue) (venue.Venue, error) {
+	result := venue.Venue{VenueID: wv.VenueID, Name: wv.Name, Address: wv.Address,
+		Rating: wv.Rating, GooglePlaceID: wv.GooglePlaceID, Website: wv.Website,
+		PhoneNumber: wv.PhoneNumber, Notes: wv.Notes, Visits: wv.Visits}
+	var ocs []maps.OpeningHoursPeriod
+	oc, err := convertOpeningHours(time.Monday, wv.OpeningHours.Monday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	oc, err = convertOpeningHours(time.Tuesday, wv.OpeningHours.Tuesday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	oc, err = convertOpeningHours(time.Wednesday, wv.OpeningHours.Wednesday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	oc, err = convertOpeningHours(time.Thursday, wv.OpeningHours.Thursday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	oc, err = convertOpeningHours(time.Friday, wv.OpeningHours.Friday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	oc, err = convertOpeningHours(time.Saturday, wv.OpeningHours.Saturday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	oc, err = convertOpeningHours(time.Sunday, wv.OpeningHours.Sunday)
+	if err != nil {
+		return result, errors.New("Error converting Opening Hours:" + err.Error())
+	}
+	ocs = append(ocs, oc)
+	for _, o := range ocs {
+		if o.Open.Time != "" {
+			result.OpeningHours.Periods = append(result.OpeningHours.Periods, o)
+		}
+	}
+	return result, nil
+}
+
 type venueViewPage struct {
+	Default defaultPage
+	Venue   webVenue
+}
+
+type venueAddPage struct {
 	Default defaultPage
 	Venue   webVenue
 }

@@ -52,6 +52,16 @@
   <div class="container">
     <h2 class="mt-5">{{.Default.Pagename}}</h2>
     {{.Default.Message}}
+    <div class="mb-3">
+      <form method="GET">
+        <fieldset>
+        <!-- Button -->
+        <div class="form-group">
+            <button id="singlebutton" type="submit" name="action" value="add" class="btn btn-primary">Add Venue</button>
+        </div>
+        </fieldset>
+      </form>
+    </div>
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>

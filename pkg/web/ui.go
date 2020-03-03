@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/philmacfly/wheretoeat/pkg/venue"
@@ -34,10 +36,12 @@ func createNavitem(name string, link string) []template.HTML {
 
 func init() {
 	navitems = append(navitems, createNavitem("Overview", ""))
+	navitems = append(navitems, createNavitem("Add Venue", "ui/venue/?action=add"))
 }
 
 const (
 	overviewActive int = 1 + iota
+	addvenueActive
 )
 
 func buildNavbar(item int) template.HTML {
@@ -150,10 +154,11 @@ func venueUIViewHandler(w http.ResponseWriter, r *http.Request) {
 
 	id := r.FormValue("id")
 
-	v := venue.Venue{VenueID: id}
-	err := v.LoadFromDataLocation()
+	v := venue.Venue{}
+
+	err := sendHTTPRequest("GET", "venue/"+id, nil, &v)
 	if err != nil {
-		vvp.Default.Message = buildMessage(errormessage, "Error loading venue: "+err.Error())
+		vvp.Default.Message = buildMessage(errormessage, "Error getting venue request: "+err.Error())
 		showtemplate(w, tp, vvp)
 		return
 	}
@@ -161,11 +166,87 @@ func venueUIViewHandler(w http.ResponseWriter, r *http.Request) {
 	showtemplate(w, tp, vvp)
 }
 
+func venueUIAddHandler(w http.ResponseWriter, r *http.Request) {
+	var vap venueAddPage
+	tp := "../../web/templates/venue/add.html"
+	vap.Default.Navbar = buildNavbar(addvenueActive)
+	vap.Default.Pagename = "Add Venue"
+
+	name := r.FormValue("Name")
+	address := r.FormValue("Address")
+	v := venue.Venue{}
+	if name != "" {
+		query := name
+		if address != "" {
+			query = query + ", " + address
+		}
+		err := sendHTTPRequest("GET", "venue/getfromplaces/"+query, nil, &v)
+		if err != nil {
+			vap.Default.Message = buildMessage(errormessage, "Error getting venue request: "+err.Error())
+			showtemplate(w, tp, vap)
+			return
+		}
+	}
+
+	vap.Venue = convertVenuetoWebVenue(v)
+	showtemplate(w, tp, vap)
+}
+
+func venueUISaveHandler(w http.ResponseWriter, r *http.Request) {
+	var vap venueAddPage
+	tp := "../../web/templates/venue/add.html"
+	vap.Default.Navbar = buildNavbar(addvenueActive)
+	vap.Default.Pagename = "Add Venue"
+
+	var wv webVenue
+	wv.Name = r.FormValue("Name")
+	wv.Address = r.FormValue("Address")
+	rating := r.FormValue("Rating")
+	ra, _ := strconv.Atoi(rating)
+	wv.Rating = ra
+	wv.GooglePlaceID = r.FormValue("placesid")
+	wv.Website = r.FormValue("Website")
+	wv.PhoneNumber = r.FormValue("phone")
+	wv.Notes = r.FormValue("Notes")
+	wv.OpeningHours.Monday = r.FormValue("Monday")
+	wv.OpeningHours.Tuesday = r.FormValue("Tuesday")
+	wv.OpeningHours.Wednesday = r.FormValue("Wednesday")
+	wv.OpeningHours.Thursday = r.FormValue("Thursday")
+	wv.OpeningHours.Friday = r.FormValue("Friday")
+	wv.OpeningHours.Saturday = r.FormValue("Monday")
+	wv.OpeningHours.Sunday = r.FormValue("Sunday")
+
+	v, err := convertWebVenuetoVenue(wv)
+	if err != nil {
+		vap.Default.Message = buildMessage(errormessage, "Error converting venue: "+err.Error())
+		vap.Venue = wv
+		showtemplate(w, tp, vap)
+		return
+	}
+
+	b := new(bytes.Buffer)
+	encoder := json.NewEncoder(b)
+	encoder.Encode(v)
+
+	err = sendHTTPRequest("POST", "venue", b, &v)
+	if err != nil {
+		vap.Default.Message = buildMessage(errormessage, "Error sending Venue request: "+err.Error())
+		vap.Venue = wv
+		showtemplate(w, tp, vap)
+		return
+	}
+	http.Redirect(w, r, "?action=view&id="+v.VenueID, http.StatusFound)
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
 	case "view":
 		venueUIViewHandler(w, r)
+	case "add":
+		venueUIAddHandler(w, r)
+	case "save":
+		venueUISaveHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}

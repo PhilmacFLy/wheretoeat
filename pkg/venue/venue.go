@@ -123,6 +123,10 @@ func GetVenubyPlaceSearch(query string) (Venue, error) {
 		return res, errors.New("Error on search query:" + err.Error())
 	}
 
+	if len(searchResp.Candidates) == 0 {
+		return res, nil
+	}
+
 	candidate := searchResp.Candidates[0]
 	res.Name = candidate.Name
 	res.Rating = int(math.Round(float64(candidate.Rating)))
