@@ -16,8 +16,6 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-const layoutISO = "2006-01-02"
-
 //Venue hod all information for a place to eat
 type Venue struct {
 	VenueID          string
@@ -31,7 +29,6 @@ type Venue struct {
 	PhoneNumber      string
 	Notes            string
 	Visits           []time.Time
-	LastVisit        string
 }
 
 //ByName is for sorting Venues by Name
@@ -255,10 +252,6 @@ func ListVenues() ([]Venue, error) {
 		err := v.loadfromFile(filepath.Join(datafolder, f.Name()))
 		if err != nil {
 			return result, errors.New("Error loading one venue: " + err.Error())
-		}
-		v.LastVisit = ""
-		if len(v.Visits) > 1 {
-			v.LastVisit = v.Visits[len(v.Visits)-1].Format(layoutISO)
 		}
 		result = append(result, v)
 	}

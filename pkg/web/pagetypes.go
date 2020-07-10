@@ -10,6 +10,8 @@ import (
 	"googlemaps.github.io/maps"
 )
 
+const layoutISO = "2006-01-02"
+
 type defaultPage struct {
 	Message  template.HTML
 	Navbar   template.HTML
@@ -18,7 +20,7 @@ type defaultPage struct {
 
 type mainPage struct {
 	Default defaultPage
-	Venues  []venue.Venue
+	Venues  []webVenue
 }
 
 type webOpeningHours struct {
@@ -42,6 +44,7 @@ type webVenue struct {
 	PhoneNumber   string
 	Notes         string
 	Visits        []time.Time
+	LastVisit     string
 }
 
 func convertVenuetoWebVenue(v venue.Venue) webVenue {
@@ -68,6 +71,11 @@ func convertVenuetoWebVenue(v venue.Venue) webVenue {
 			result.OpeningHours.Saturday = result.OpeningHours.Saturday + time
 		}
 	}
+	result.LastVisit = ""
+	if len(v.Visits) > 1 {
+		result.LastVisit = v.Visits[len(v.Visits)-1].Format(layoutISO)
+	}
+
 	return result
 }
 
@@ -153,6 +161,11 @@ type venueViewPage struct {
 }
 
 type venueAddPage struct {
+	Default defaultPage
+	Venue   webVenue
+}
+
+type venueAddVisitPage struct {
 	Default defaultPage
 	Venue   webVenue
 }
