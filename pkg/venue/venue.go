@@ -16,6 +16,8 @@ import (
 	"googlemaps.github.io/maps"
 )
 
+const layoutISO = "2006-01-02"
+
 //Venue hod all information for a place to eat
 type Venue struct {
 	VenueID          string
@@ -29,7 +31,36 @@ type Venue struct {
 	PhoneNumber      string
 	Notes            string
 	Visits           []time.Time
+	LastVisit        string
 }
+
+//ByName is for sorting Venues by Name
+type ByName []Venue
+
+func (a ByName) Len() int           { return len(a) }
+func (a ByName) Less(i, j int) bool { return strings.Compare(a[i].Name, a[j].Name) == -1 }
+func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+//ByNameReverse is for sorting Venues by Name
+type ByNameReverse []Venue
+
+func (a ByNameReverse) Len() int           { return len(a) }
+func (a ByNameReverse) Less(i, j int) bool { return strings.Compare(a[i].Name, a[j].Name) == 1 }
+func (a ByNameReverse) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+//ByRating sorts Venues by Rating
+type ByRating []Venue
+
+func (a ByRating) Len() int           { return len(a) }
+func (a ByRating) Less(i, j int) bool { return a[i].Rating < a[j].Rating }
+func (a ByRating) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+//ByRatingReverse sorts Venues by Rating
+type ByRatingReverse []Venue
+
+func (a ByRatingReverse) Len() int           { return len(a) }
+func (a ByRatingReverse) Less(i, j int) bool { return a[i].Rating > a[j].Rating }
+func (a ByRatingReverse) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 type candidates struct {
 	PlaceID string  `json:"place_id"`
@@ -224,6 +255,10 @@ func ListVenues() ([]Venue, error) {
 		err := v.loadfromFile(filepath.Join(datafolder, f.Name()))
 		if err != nil {
 			return result, errors.New("Error loading one venue: " + err.Error())
+		}
+		v.LastVisit = ""
+		if len(v.Visits) > 1 {
+			v.LastVisit = v.Visits[len(v.Visits)-1].Format(layoutISO)
 		}
 		result = append(result, v)
 	}

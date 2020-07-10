@@ -2,8 +2,10 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -25,9 +27,21 @@ func mainAPIHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func listVenuesAPIHandler(w http.ResponseWriter, r *http.Request) {
+	sb := r.FormValue("sortby")
+	fmt.Println(sb)
 	vv, err := venue.ListVenues()
 	if err != nil {
 		apierror(w, r, "Error Listing Venues: "+err.Error(), http.StatusInternalServerError)
+	}
+	switch sb {
+	case "name-desc":
+		sort.Sort(venue.ByNameReverse(vv))
+	case "rating":
+		sort.Sort(venue.ByRating(vv))
+	case "rating-desc":
+		sort.Sort(venue.ByRatingReverse(vv))
+	default:
+		sort.Sort(venue.ByName(vv))
 	}
 	j, err := json.Marshal(&vv)
 	if err != nil {
