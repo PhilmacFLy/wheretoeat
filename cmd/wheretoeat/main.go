@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/philmacfly/wheretoeat/pkg/config"
 	"github.com/philmacfly/wheretoeat/pkg/venue"
@@ -11,6 +13,7 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().Unix())
 	c, err := config.LoadConfig("config.json")
 	if err != nil {
 		log.Fatal("Error loading config:", err)

@@ -43,11 +43,13 @@ func createNavitem(name string, link string) []template.HTML {
 func init() {
 	navitems = append(navitems, createNavitem("Overview", ""))
 	navitems = append(navitems, createNavitem("Add Venue", "ui/venue/?action=add"))
+	navitems = append(navitems, createNavitem("Select New Venue", "ui/venue/?action=not-visited"))
 }
 
 const (
 	overviewActive int = 1 + iota
 	addvenueActive
+	notVisitedActive
 )
 
 func buildNavbar(item int) template.HTML {
@@ -247,6 +249,24 @@ func venueUISaveHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func venueUINotVisitedHandler(w http.ResponseWriter, r *http.Request) {
+	var mp mainPage
+	tp := "../../web/templates/main.html"
+	mp.Default.Navbar = buildNavbar(overviewActive)
+	mp.Default.Pagename = "Venue List"
+
+	v := venue.Venue{}
+
+	err := sendHTTPRequest("GET", "venue/notvisited", nil, &v)
+	if err != nil {
+		mp.Default.Message = buildMessage(errormessage, "Error getting not visited venue request: "+err.Error())
+		showtemplate(w, tp, mp)
+		return
+	}
+	http.Redirect(w, r, "?action=view&id="+v.VenueID, http.StatusTemporaryRedirect)
+
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
@@ -256,6 +276,8 @@ func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 		venueUIAddHandler(w, r)
 	case "save":
 		venueUISaveHandler(w, r)
+	case "not-visited":
+		venueUINotVisitedHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}

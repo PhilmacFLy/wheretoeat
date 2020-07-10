@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
@@ -193,11 +194,34 @@ func getVenueFromPlacesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+func getNotVisitedVenue(w http.ResponseWriter, r *http.Request) {
+	vv, err := venue.ListVenues()
+	if err != nil {
+		apierror(w, r, "Error Listing Venues: "+err.Error(), http.StatusInternalServerError)
+	}
+	var oo []venue.Venue
+	for _, v := range vv {
+		if len(v.Visits) < 1 {
+			oo = append(oo, v)
+		}
+	}
+	o := oo[rand.Intn(len(oo))]
+	j, err := json.Marshal(&o)
+	if err != nil {
+		apierror(w, r, "Error marshalling Venue: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(j)
+}
+
 func getAPIRouter(prefix string) *mux.Router {
 	r := mux.NewRouter().PathPrefix(prefix).Subrouter()
 	r.HandleFunc("/", mainAPIHandler)
 	r.HandleFunc("/venue", postVenueAPIHandler).Methods("POST")
 	r.HandleFunc("/venue/list", listVenuesAPIHandler).Methods("GET")
+	r.HandleFunc("/venue/notvisited", getNotVisitedVenue).Methods("GET")
 	r.HandleFunc("/venue/getfromplaces/{query}", getVenueFromPlacesAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", getVenueAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", patchVenueAPIHander).Methods("PATCH")
