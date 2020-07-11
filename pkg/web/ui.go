@@ -345,6 +345,22 @@ func venueUIUpdateVenuesfromPlacesHandler(w http.ResponseWriter, r *http.Request
 	showtemplate(w, tp, udp)
 }
 
+func venueUIDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	var mp mainPage
+	tp := "../../web/templates/main.html"
+	mp.Default.Navbar = buildNavbar(overviewActive)
+	mp.Default.Pagename = "Venue List"
+
+	id := r.FormValue("id")
+	err := sendHTTPRequest("DELETE", "venue/"+id, nil, nil)
+	if err != nil {
+		mp.Default.Message = buildMessage(errormessage, "Error getting not visited venue request: "+err.Error())
+		showtemplate(w, tp, mp)
+		return
+	}
+	http.Redirect(w, r, "?action=list", http.StatusTemporaryRedirect)
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
@@ -362,6 +378,8 @@ func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 		venueUIAddVisitExecuteHandler(w, r)
 	case "update-from-places":
 		venueUIUpdateVenuesfromPlacesHandler(w, r)
+	case "delete":
+		venueUIDeleteHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}
