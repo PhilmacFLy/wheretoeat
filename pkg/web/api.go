@@ -2,16 +2,22 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
+	"time"
+
+	"github.com/philmacfly/wheretoeat/pkg/config"
 
 	"github.com/gorilla/mux"
 	"github.com/philmacfly/wheretoeat/pkg/venue"
 )
+
+var criteriaweight config.Weight
 
 func apierror(w http.ResponseWriter, r *http.Request, err string, httpcode int) {
 	log.Println(err)
@@ -29,7 +35,6 @@ func mainAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 func listVenuesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	sb := r.FormValue("sortby")
-	fmt.Println(sb)
 	vv, err := venue.ListVenues()
 	if err != nil {
 		apierror(w, r, "Error Listing Venues: "+err.Error(), http.StatusInternalServerError)
@@ -217,6 +222,72 @@ func getNotVisitedVenue(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+func getWeightedArray(venues []venue.Venue) []venue.Venue {
+	var res []venue.Venue
+
+	for _, v := range venues {
+		lastvisit := 356
+		daycount := 1
+		rating := v.Rating
+		if len(v.Visits) > 0 {
+			lv := v.Visits[len(v.Visits)-1]
+			dur := time.Now().Sub(lv)
+			lastvisit = int(dur / (time.Hour * 24))
+			if lastvisit < 0 {
+				lastvisit = 1
+			}
+			daycount = len(v.Visits)
+		}
+		lastvisitf := float64(lastvisit) * criteriaweight.LastVisit
+		daycountf := float64(daycount) * criteriaweight.DayCount
+		ratingf := float64(rating) * criteriaweight.Rating
+		ticketcount := int(math.Ceil((lastvisitf / daycountf) * ratingf))
+		for i := 0; i < ticketcount; i++ {
+			res = append(res, v)
+		}
+	}
+
+	return res
+}
+
+func getNextVenuetoVisit(w http.ResponseWriter, r *http.Request) {
+	new := !(strings.ToLower(r.FormValue("new")) == "")
+	old := !(strings.ToLower(r.FormValue("old")) == "")
+	weighted := !(strings.ToLower(r.FormValue("weighted")) == "")
+	vv, err := venue.ListVenues()
+	if err != nil {
+		apierror(w, r, "Error Listing Venues: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var candiates []venue.Venue
+
+	for _, v := range vv {
+		if ((len(v.Visits) > 0) && old) || ((len(v.Visits) == 0) && new) {
+			candiates = append(candiates, v)
+		}
+	}
+
+	if len(candiates) < 1 {
+		apierror(w, r, "No candidates to choose from", http.StatusInternalServerError)
+		return
+	}
+
+	if weighted {
+		candiates = getWeightedArray(candiates)
+	}
+
+	c := candiates[rand.Intn(len(candiates))]
+
+	j, err := json.Marshal(&c)
+	if err != nil {
+		apierror(w, r, "Error marshalling Venue: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(j)
+}
+
 func postUpdatefromPlaces(w http.ResponseWriter, r *http.Request) {
 	vv, err := venue.ListVenues()
 	if err != nil {
@@ -240,12 +311,18 @@ func postUpdatefromPlaces(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//SetWeights gets the criteria Weight from the config to save them for calulations later
+func SetWeights(w config.Weight) {
+	criteriaweight = w
+}
+
 func getAPIRouter(prefix string) *mux.Router {
 	r := mux.NewRouter().PathPrefix(prefix).Subrouter()
 	r.HandleFunc("/", mainAPIHandler)
 	r.HandleFunc("/venue", postVenueAPIHandler).Methods("POST")
 	r.HandleFunc("/venue/list", listVenuesAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/notvisited", getNotVisitedVenue).Methods("GET")
+	r.HandleFunc("/venue/next", getNextVenuetoVisit)
 	r.HandleFunc("/venue/updatefromplaces", postUpdatefromPlaces).Methods("POST")
 	r.HandleFunc("/venue/getfromplaces/{query}", getVenueFromPlacesAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", getVenueAPIHandler).Methods("GET")

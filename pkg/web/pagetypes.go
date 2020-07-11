@@ -173,3 +173,7 @@ type venueAddVisitPage struct {
 type updateDonePage struct {
 	Default defaultPage
 }
+
+type nextOptionsPage struct {
+	Default defaultPage
+}

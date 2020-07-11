@@ -10,6 +10,14 @@ import (
 type Config struct {
 	GoogleAPIKey string `json:"googleapikey"`
 	Port         int    `json:"port"`
+	Weight       Weight `json:"weight"`
+}
+
+//Weight is the struct to save the weights of the criteria
+type Weight struct {
+	Rating    float64 `json:"rating"`
+	LastVisit float64 `json:"lastvisit"`
+	DayCount  float64 `jsin:"daycount"`
 }
 
 //LoadConfig accepts a filepath and tries to load a config file from there

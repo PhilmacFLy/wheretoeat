@@ -45,12 +45,14 @@ func init() {
 	navitems = append(navitems, createNavitem("Overview", ""))
 	navitems = append(navitems, createNavitem("Add Venue", "ui/venue/?action=add"))
 	navitems = append(navitems, createNavitem("Select New Venue", "ui/venue/?action=not-visited"))
+	navitems = append(navitems, createNavitem("Select Next Venue", "ui/venue/?action=next"))
 }
 
 const (
 	overviewActive int = 1 + iota
 	addvenueActive
 	notVisitedActive
+	nextVisitedActive
 )
 
 func buildNavbar(item int) template.HTML {
@@ -361,6 +363,37 @@ func venueUIDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "?action=list", http.StatusTemporaryRedirect)
 }
 
+func venueUINextOptionHandler(w http.ResponseWriter, r *http.Request) {
+	var nop nextOptionsPage
+	tp := "../../web/templates/venue/next.html"
+	nop.Default.Navbar = buildNavbar(nextVisitedActive)
+	nop.Default.Pagename = "Select next options"
+	showtemplate(w, tp, nop)
+}
+
+func venueUINextHandler(w http.ResponseWriter, r *http.Request) {
+	var nop nextOptionsPage
+	tp := "../../web/templates/venue/next.html"
+	nop.Default.Navbar = buildNavbar(nextVisitedActive)
+	nop.Default.Pagename = "Select next options"
+
+	old := r.FormValue("old")
+	new := r.FormValue("new")
+	weighted := r.FormValue("weighted")
+
+	var v venue.Venue
+
+	options := "?old=" + old + "&new=" + new + "&weighted=" + weighted
+
+	err := sendHTTPRequest("GET", "venue/next"+options, nil, &v)
+	if err != nil {
+		nop.Default.Message = buildMessage(errormessage, "Error getting next venue request: "+err.Error())
+		showtemplate(w, tp, nop)
+		return
+	}
+	http.Redirect(w, r, "?action=view&id="+v.VenueID, http.StatusTemporaryRedirect)
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
@@ -380,6 +413,10 @@ func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 		venueUIUpdateVenuesfromPlacesHandler(w, r)
 	case "delete":
 		venueUIDeleteHandler(w, r)
+	case "next":
+		venueUINextOptionHandler(w, r)
+	case "get-next-venue":
+		venueUINextHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}
