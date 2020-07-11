@@ -160,7 +160,7 @@ func addVisitAPIHandler(w http.ResponseWriter, r *http.Request) {
 		apierror(w, r, "Error decoding Venue: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	result.Visits = append(result.Visits, result.Visits...)
+	result.Visits = append(result.Visits, a.Visits...)
 	err = result.SavetoDataLocation()
 	if err != nil {
 		apierror(w, r, "Error saving Venue: "+err.Error(), http.StatusInternalServerError)

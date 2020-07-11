@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/philmacfly/wheretoeat/pkg/venue"
 
@@ -145,11 +146,16 @@ func venueUIListHandler(w http.ResponseWriter, r *http.Request) {
 	mp.Default.Navbar = buildNavbar(overviewActive)
 	mp.Default.Pagename = "Venue List"
 
-	err := sendHTTPRequest("GET", "venue/list", nil, &mp.Venues)
+	var vv []venue.Venue
+
+	err := sendHTTPRequest("GET", "venue/list", nil, &vv)
 	if err != nil {
 		mp.Default.Message = buildMessage(errormessage, "Error creating venue/list request: "+err.Error())
 		showtemplate(w, tp, mp)
 		return
+	}
+	for _, v := range vv {
+		mp.Venues = append(mp.Venues, convertVenuetoWebVenue(v))
 	}
 	showtemplate(w, tp, mp)
 }
@@ -267,6 +273,62 @@ func venueUINotVisitedHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func venueUIAddVisitHandler(w http.ResponseWriter, r *http.Request) {
+	var vap venueAddVisitPage
+	tp := "../../web/templates/venue/add-visit.html"
+	vap.Default.Navbar = buildNavbar(overviewActive)
+	vap.Default.Pagename = "Venue Add Visit"
+
+	id := r.FormValue("id")
+
+	v := venue.Venue{}
+
+	err := sendHTTPRequest("GET", "venue/"+id, nil, &v)
+	if err != nil {
+		vap.Default.Message = buildMessage(errormessage, "Error getting venue request: "+err.Error())
+		showtemplate(w, tp, vap)
+		return
+	}
+	vap.Venue = convertVenuetoWebVenue(v)
+
+	vap.Venue.LastVisit = time.Now().Format(layoutISO)
+
+	showtemplate(w, tp, vap)
+}
+
+func venueUIAddVisitExecuteHandler(w http.ResponseWriter, r *http.Request) {
+	var vap venueAddVisitPage
+	tp := "../../web/templates/venue/add-visit.html"
+	vap.Default.Navbar = buildNavbar(overviewActive)
+	vap.Default.Pagename = "Venue Add Visit"
+
+	id := r.FormValue("id")
+	date := r.FormValue("date")
+
+	d, err := time.Parse(layoutISO, date)
+	if err != nil {
+		vap.Default.Message = buildMessage(errormessage, "Error parsing given date: "+err.Error())
+		showtemplate(w, tp, vap)
+		return
+	}
+
+	var req addVisitsRequest
+
+	req.Visits = append(req.Visits, d)
+
+	b := new(bytes.Buffer)
+	encoder := json.NewEncoder(b)
+	encoder.Encode(req)
+
+	err = sendHTTPRequest("POST", "venue/"+id+"/addvisits", b, nil)
+	if err != nil {
+		vap.Default.Message = buildMessage(errormessage, "Error getting venue request: "+err.Error())
+		showtemplate(w, tp, vap)
+		return
+	}
+	http.Redirect(w, r, "?action=view&id="+id, http.StatusTemporaryRedirect)
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
@@ -278,6 +340,10 @@ func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 		venueUISaveHandler(w, r)
 	case "not-visited":
 		venueUINotVisitedHandler(w, r)
+	case "add-visit":
+		venueUIAddVisitHandler(w, r)
+	case "add-visit-execute":
+		venueUIAddVisitExecuteHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}

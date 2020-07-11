@@ -72,7 +72,7 @@ func convertVenuetoWebVenue(v venue.Venue) webVenue {
 		}
 	}
 	result.LastVisit = ""
-	if len(v.Visits) > 1 {
+	if len(v.Visits) > 0 {
 		result.LastVisit = v.Visits[len(v.Visits)-1].Format(layoutISO)
 	}
 
