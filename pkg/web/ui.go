@@ -329,6 +329,21 @@ func venueUIAddVisitExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "?action=view&id="+id, http.StatusTemporaryRedirect)
 }
 
+func venueUIUpdateVenuesfromPlacesHandler(w http.ResponseWriter, r *http.Request) {
+	var udp updateDonePage
+	tp := "../../web/templates/venue/update-done.html"
+	udp.Default.Navbar = buildNavbar(overviewActive)
+	udp.Default.Pagename = "Update Done"
+
+	err := sendHTTPRequest("POST", "venue/updatefromplaces", nil, nil)
+	if err != nil {
+		udp.Default.Message = buildMessage(errormessage, "Error getting venue request: "+err.Error())
+		showtemplate(w, tp, udp)
+		return
+	}
+	showtemplate(w, tp, udp)
+}
+
 func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.FormValue("action")
 	switch a {
@@ -344,6 +359,8 @@ func venueUIHandler(w http.ResponseWriter, r *http.Request) {
 		venueUIAddVisitHandler(w, r)
 	case "add-visit-execute":
 		venueUIAddVisitExecuteHandler(w, r)
+	case "update-from-places":
+		venueUIUpdateVenuesfromPlacesHandler(w, r)
 	default:
 		venueUIListHandler(w, r)
 	}

@@ -161,21 +161,10 @@ func GetVenubyPlaceSearch(query string) (Venue, error) {
 	res.GooglePlaceID = candidate.PlaceID
 	res.Address = candidate.FormattedAddress
 
-	detailRequest := &maps.PlaceDetailsRequest{
-		PlaceID: res.GooglePlaceID,
-		Fields:  detailqueryfieldsmask,
-	}
-
-	detailResp, err := client.PlaceDetails(context.Background(), detailRequest)
+	err = res.UpdateInfos()
 	if err != nil {
-		return res, errors.New("Error on detail query:" + err.Error())
+		return res, errors.New("Error updating details:" + err.Error())
 	}
-
-	res.OpeningHours = *detailResp.OpeningHours
-	res.Website = detailResp.Website
-	res.PhoneNumber = detailResp.InternationalPhoneNumber
-	res.OpeningHoursText = detailResp.OpeningHours.WeekdayText
-	res.VenueID = res.GenerateVenueID()
 
 	return res, nil
 }
@@ -230,6 +219,26 @@ func (v *Venue) Delete() error {
 	if err != nil {
 		return errors.New("Error deleting file: " + err.Error())
 	}
+	return nil
+}
+
+//UpdateInfos updates volatile Infos of a Venue (Opening Hours, Website, Phone Number)
+func (v *Venue) UpdateInfos() error {
+	detailRequest := &maps.PlaceDetailsRequest{
+		PlaceID: v.GooglePlaceID,
+		Fields:  detailqueryfieldsmask,
+	}
+
+	detailResp, err := client.PlaceDetails(context.Background(), detailRequest)
+	if err != nil {
+		return errors.New("Error on detail query:" + err.Error())
+	}
+
+	v.OpeningHours = *detailResp.OpeningHours
+	v.Website = detailResp.Website
+	v.PhoneNumber = detailResp.InternationalPhoneNumber
+	v.OpeningHoursText = detailResp.OpeningHours.WeekdayText
+
 	return nil
 }
 

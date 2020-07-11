@@ -169,3 +169,7 @@ type venueAddVisitPage struct {
 	Default defaultPage
 	Venue   webVenue
 }
+
+type updateDonePage struct {
+	Default defaultPage
+}

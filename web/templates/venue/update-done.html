@@ -52,48 +52,6 @@
   <div class="container">
     <h2 class="mt-5">{{.Default.Pagename}}</h2>
     {{.Default.Message}}
-    <div class="mb-3">
-      <form method="GET">
-        <fieldset>
-        <!-- Button -->
-        <div class="form-group">
-            <button id="singlebutton" type="submit" name="action" value="add" class="btn btn-primary">Add Venue</button>
-            <button id="singlebutton" type="submit" name="action" value="update-from-places" class="btn btn-secondary" formmethod="post">Update from Places</button>
-        </div>
-        </fieldset>
-      </form>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Rating</th>
-            <th>Last Visit</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range $index, $element := .Venues}}
-          <tr>
-            <td>{{$element.Name}}</td>
-            <td>{{$element.Address}}</td>
-            <td>{{$element.Rating}} of 5</td>
-            <td>{{$element.LastVisit}}</td>
-            <td>
-                <form method="GET">
-                  <button type="submit" name="action" value="view" class="btn btn-primary btn-sm" aria-label="Left Align">
-                    <span class="oi oi-magnifying-glass" title="magnifying glass" aria-hidden="true"></span>  
-                  </button>
-                  <input type="hidden" name="id" value="{{$element.VenueID}}"/>
-                </form>
-            </td>
-          </tr>
-          {{end}}
-        </tbody>
-      </table>
-    </div>
   </div>
 </main>
 

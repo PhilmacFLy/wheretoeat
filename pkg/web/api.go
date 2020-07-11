@@ -33,6 +33,7 @@ func listVenuesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	vv, err := venue.ListVenues()
 	if err != nil {
 		apierror(w, r, "Error Listing Venues: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 	switch sb {
 	case "name-desc":
@@ -216,12 +217,36 @@ func getNotVisitedVenue(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
+func postUpdatefromPlaces(w http.ResponseWriter, r *http.Request) {
+	vv, err := venue.ListVenues()
+	if err != nil {
+		apierror(w, r, "Error Listing Venues: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	for _, v := range vv {
+		if v.GooglePlaceID == "" {
+			continue
+		}
+		err := v.UpdateInfos()
+		if err != nil {
+			apierror(w, r, "Error Updating Venue: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = v.SavetoDataLocation()
+		if err != nil {
+			apierror(w, r, "Error Saving Venue: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func getAPIRouter(prefix string) *mux.Router {
 	r := mux.NewRouter().PathPrefix(prefix).Subrouter()
 	r.HandleFunc("/", mainAPIHandler)
 	r.HandleFunc("/venue", postVenueAPIHandler).Methods("POST")
 	r.HandleFunc("/venue/list", listVenuesAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/notvisited", getNotVisitedVenue).Methods("GET")
+	r.HandleFunc("/venue/updatefromplaces", postUpdatefromPlaces).Methods("POST")
 	r.HandleFunc("/venue/getfromplaces/{query}", getVenueFromPlacesAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", getVenueAPIHandler).Methods("GET")
 	r.HandleFunc("/venue/{ID}", patchVenueAPIHander).Methods("PATCH")
