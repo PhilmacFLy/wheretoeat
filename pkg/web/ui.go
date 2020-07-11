@@ -341,6 +341,7 @@ func venueUIUpdateVenuesfromPlacesHandler(w http.ResponseWriter, r *http.Request
 		showtemplate(w, tp, udp)
 		return
 	}
+	udp.Default.Message = buildMessage(successmessage, "All Venues updated")
 	showtemplate(w, tp, udp)
 }
 
