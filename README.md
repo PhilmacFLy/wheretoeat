@@ -1,6 +1,6 @@
 # wheretoeat
 
-[![Release](https://img.shields.io/github/release/golang-standards/project-layout.svg?style=flat-square)](https://github.com/PhilmacFLy/wheretoeat/releases/latest)
+[![Release](https://img.shields.io/github/v/release/PhilmacFLy/wheretoeat.svg?style=flat-square)](https://github.com/PhilmacFLy/wheretoeat/releases/latest)
 
 Wanna go eat but dont know where? Let where to eat handle that
 
