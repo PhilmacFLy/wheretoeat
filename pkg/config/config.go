@@ -9,6 +9,7 @@ import (
 //Config is the struct to save and load the config file
 type Config struct {
 	GoogleAPIKey string `json:"googleapikey"`
+	Host         string `json:"host"`
 	Port         int    `json:"port"`
 	Weight       Weight `json:"weight"`
 }

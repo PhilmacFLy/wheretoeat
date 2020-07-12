@@ -25,5 +25,5 @@ func main() {
 	venue.SetDataFolder("data")
 	web.SetWeights(c.Weight)
 	r := web.SetupRouters("/")
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(c.Port), r))
+	log.Fatal(http.ListenAndServe(c.Host+":"+strconv.Itoa(c.Port), r))
 }
